@@ -7,13 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Globe, FileText, HelpCircle } from 'lucide-react';
+import { Upload, Globe, Database as DatabaseIcon, HelpCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const NewRequest = () => {
   const [requestName, setRequestName] = useState('');
   const [singleUrl, setSingleUrl] = useState('');
-  const [customQuery, setCustomQuery] = useState('');
+  const [sqlQuery, setSqlQuery] = useState('');
 
   const handleSubmit = (type: string) => {
     console.log(`Submitting ${type} request`);
@@ -75,11 +75,11 @@ const NewRequest = () => {
               </TabsTrigger>
               <TabsTrigger value="batch-upload" className="flex items-center space-x-2">
                 <Upload className="w-4 h-4" />
-                <span>Batch Upload</span>
+                <span>Excel/CSV Upload</span>
               </TabsTrigger>
-              <TabsTrigger value="custom-query" className="flex items-center space-x-2">
-                <FileText className="w-4 h-4" />
-                <span>Custom Query</span>
+              <TabsTrigger value="sql-query" className="flex items-center space-x-2">
+                <DatabaseIcon className="w-4 h-4" />
+                <span>SQL Query</span>
               </TabsTrigger>
             </TabsList>
 
@@ -122,29 +122,29 @@ const NewRequest = () => {
                   onClick={() => handleSubmit('single-url')}
                   disabled={!requestName || !singleUrl}
                 >
-                  Start Single URL Scraping
+                  Submit Request
                 </Button>
               </div>
             </TabsContent>
 
-            {/* Batch Upload Tab */}
+            {/* Excel/CSV Upload Tab */}
             <TabsContent value="batch-upload" className="space-y-4">
               <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="font-medium text-green-900 mb-2">Batch URL Scraping</h3>
+                <h3 className="font-medium text-green-900 mb-2">Excel/CSV Batch Scraping</h3>
                 <p className="text-sm text-green-800">
-                  Upload a CSV file with multiple URLs to scrape data from many pages at once.
+                  Upload an Excel or CSV file with multiple URLs to scrape data from many pages at once.
                 </p>
               </div>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="csv-upload">Upload CSV File *</Label>
+                  <Label htmlFor="file-upload">Upload Excel/CSV File *</Label>
                   <div className="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-600 mb-2">
-                      Click to upload or drag and drop your CSV file
+                      Click to upload or drag and drop your Excel/CSV file
                     </p>
                     <p className="text-xs text-gray-500">
-                      CSV files only, max 10MB
+                      Excel (.xlsx, .xls) or CSV files only, max 10MB
                     </p>
                     <Button variant="outline" className="mt-2">
                       Choose File
@@ -152,12 +152,13 @@ const NewRequest = () => {
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">CSV Format Requirements:</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">File Format Requirements:</h4>
                   <ul className="text-sm text-gray-700 space-y-1">
                     <li>• First column should contain URLs</li>
                     <li>• Include header row (e.g., "URL", "Name", "Category")</li>
                     <li>• Maximum 1000 URLs per batch</li>
                     <li>• Each URL should be complete (including http/https)</li>
+                    <li>• Supports Excel (.xlsx, .xls) and CSV formats</li>
                   </ul>
                 </div>
                 <Button 
@@ -165,31 +166,31 @@ const NewRequest = () => {
                   onClick={() => handleSubmit('batch-upload')}
                   disabled={!requestName}
                 >
-                  Start Batch Scraping
+                  Submit Request
                 </Button>
               </div>
             </TabsContent>
 
-            {/* Custom Query Tab */}
-            <TabsContent value="custom-query" className="space-y-4">
+            {/* SQL Query Tab */}
+            <TabsContent value="sql-query" className="space-y-4">
               <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="font-medium text-purple-900 mb-2">Custom Query Scraping</h3>
+                <h3 className="font-medium text-purple-900 mb-2">SQL Query Scraping</h3>
                 <p className="text-sm text-purple-800">
-                  Describe your data extraction needs in detail. Perfect for complex or specific requirements.
+                  Use SQL-like syntax to specify complex data extraction patterns and conditions.
                 </p>
               </div>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="custom-query">Describe Your Data Needs *</Label>
+                  <Label htmlFor="sql-query">SQL Query *</Label>
                   <Textarea
-                    id="custom-query"
-                    placeholder="Example: I need to collect product information from Amazon search results for 'wireless headphones', including product names, prices, ratings, number of reviews, and seller information. I want data from the first 5 pages of results."
-                    value={customQuery}
-                    onChange={(e) => setCustomQuery(e.target.value)}
-                    className="mt-1 h-32"
+                    id="sql-query"
+                    placeholder="SELECT product_name, price, rating, reviews_count FROM 'https://example.com/products' WHERE category = 'electronics' AND price < 500 LIMIT 100"
+                    value={sqlQuery}
+                    onChange={(e) => setSqlQuery(e.target.value)}
+                    className="mt-1 h-32 font-mono text-sm"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Be as specific as possible about what data you need and where to find it
+                    Write SQL-like queries to specify what data to extract and from which URLs
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -212,10 +213,10 @@ const NewRequest = () => {
                 </div>
                 <Button 
                   className="bg-orange-500 hover:bg-orange-600"
-                  onClick={() => handleSubmit('custom-query')}
-                  disabled={!requestName || !customQuery}
+                  onClick={() => handleSubmit('sql-query')}
+                  disabled={!requestName || !sqlQuery}
                 >
-                  Submit Custom Request
+                  Submit Request
                 </Button>
               </div>
             </TabsContent>
