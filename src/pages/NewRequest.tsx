@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,19 +6,112 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Upload, Globe, Database as DatabaseIcon, HelpCircle } from 'lucide-react';
+import { Globe, Database as DatabaseIcon, HelpCircle, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
+import { FileUpload } from '@/components/FileUpload';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import { ScrapingRequest, SubmissionState } from '@/types/scraping';
 
 const NewRequest = () => {
+  // Form state
   const [requestName, setRequestName] = useState('');
   const [singleUrl, setSingleUrl] = useState('');
+  const [dataPoints, setDataPoints] = useState('');
   const [sqlQuery, setSqlQuery] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [activeTab, setActiveTab] = useState('single-url');
+  
+  // Validation and submission state
+  const { errors, validateForm, clearErrors } = useFormValidation();
+  const [submission, setSubmission] = useState<SubmissionState>({
+    isSubmitting: false,
+    error: null,
+    success: false
+  });
+  
+  const { toast } = useToast();
 
-  const handleSubmit = (type: string) => {
-    console.log(`Submitting ${type} request`);
-    // In real app, this would submit to API
+  const handleSubmit = async (type: string) => {
+    console.log(`Attempting to submit ${type} request`);
+    
+    // Clear previous errors and submission state
+    clearErrors();
+    setSubmission({ isSubmitting: false, error: null, success: false });
+
+    // Prepare form data
+    const formData: ScrapingRequest = {
+      name: requestName.trim(),
+      type: type as 'single-url' | 'batch-upload' | 'sql-query',
+      url: type === 'single-url' ? singleUrl.trim() : undefined,
+      dataPoints: type === 'single-url' ? dataPoints.trim() : undefined,
+      sqlQuery: type === 'sql-query' ? sqlQuery.trim() : undefined,
+      file: type === 'batch-upload' ? selectedFile : undefined
+    };
+
+    // Validate form
+    if (!validateForm(formData)) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors in the form before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Set submitting state
+    setSubmission({ isSubmitting: true, error: null, success: false });
+
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/scraping-requests', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(formData)
+      // });
+      
+      // Simulate API call for now
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Success state
+      setSubmission({ isSubmitting: false, error: null, success: true });
+      
+      toast({
+        title: "Request Submitted Successfully!",
+        description: `Your ${type.replace('-', ' ')} scraping request has been queued for processing.`,
+      });
+
+      // Reset form
+      resetForm();
+      
+    } catch (error) {
+      console.error('Submission error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      
+      setSubmission({ 
+        isSubmitting: false, 
+        error: errorMessage, 
+        success: false 
+      });
+      
+      toast({
+        title: "Submission Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
+
+  const resetForm = () => {
+    setRequestName('');
+    setSingleUrl('');
+    setDataPoints('');
+    setSqlQuery('');
+    setSelectedFile(null);
+    clearErrors();
+  };
+
+  const isFormDisabled = submission.isSubmitting;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -53,8 +147,12 @@ const NewRequest = () => {
               placeholder="e.g., Product Pricing Analysis, Competitor Research"
               value={requestName}
               onChange={(e) => setRequestName(e.target.value)}
-              className="mt-1"
+              disabled={isFormDisabled}
+              className={`mt-1 ${errors.name ? 'border-red-300' : ''}`}
             />
+            {errors.name && (
+              <p className="text-sm text-red-600 mt-1">{errors.name}</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -66,17 +164,16 @@ const NewRequest = () => {
           <CardDescription>Select the method that best fits your data extraction needs</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="single-url" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="single-url" className="flex items-center space-x-2">
+              <TabsTrigger value="single-url" className="flex items-center space-x-2" disabled={isFormDisabled}>
                 <Globe className="w-4 h-4" />
                 <span>Single URL</span>
               </TabsTrigger>
-              <TabsTrigger value="batch-upload" className="flex items-center space-x-2">
-                <Upload className="w-4 h-4" />
+              <TabsTrigger value="batch-upload" className="flex items-center space-x-2" disabled={isFormDisabled}>
                 <span>Excel/CSV Upload</span>
               </TabsTrigger>
-              <TabsTrigger value="sql-query" className="flex items-center space-x-2">
+              <TabsTrigger value="sql-query" className="flex items-center space-x-2" disabled={isFormDisabled}>
                 <DatabaseIcon className="w-4 h-4" />
                 <span>SQL Query</span>
               </TabsTrigger>
@@ -99,29 +196,48 @@ const NewRequest = () => {
                     placeholder="https://example.com/page-to-scrape"
                     value={singleUrl}
                     onChange={(e) => setSingleUrl(e.target.value)}
-                    className="mt-1"
+                    disabled={isFormDisabled}
+                    className={`mt-1 ${errors.url ? 'border-red-300' : ''}`}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Enter the complete URL including http:// or https://
-                  </p>
+                  {errors.url ? (
+                    <p className="text-sm text-red-600 mt-1">{errors.url}</p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter the complete URL including http:// or https://
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="data-points">What data do you want to extract?</Label>
                   <Textarea
                     id="data-points"
                     placeholder="e.g., Product names, prices, descriptions, reviews, contact information..."
-                    className="mt-1 h-20"
+                    value={dataPoints}
+                    onChange={(e) => setDataPoints(e.target.value)}
+                    disabled={isFormDisabled}
+                    className={`mt-1 h-20 ${errors.dataPoints ? 'border-red-300' : ''}`}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Describe the specific information you need in plain language
-                  </p>
+                  {errors.dataPoints ? (
+                    <p className="text-sm text-red-600 mt-1">{errors.dataPoints}</p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Describe the specific information you need in plain language
+                    </p>
+                  )}
                 </div>
                 <Button 
                   className="bg-orange-500 hover:bg-orange-600"
                   onClick={() => handleSubmit('single-url')}
-                  disabled={!requestName || !singleUrl}
+                  disabled={isFormDisabled || !requestName || !singleUrl}
                 >
-                  Submit Request
+                  {submission.isSubmitting && activeTab === 'single-url' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Request'
+                  )}
                 </Button>
               </div>
             </TabsContent>
@@ -135,21 +251,11 @@ const NewRequest = () => {
                 </p>
               </div>
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="file-upload">Upload Excel/CSV File *</Label>
-                  <div className="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-2">
-                      Click to upload or drag and drop your Excel/CSV file
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Excel (.xlsx, .xls) or CSV files only, max 10MB
-                    </p>
-                    <Button variant="outline" className="mt-2">
-                      Choose File
-                    </Button>
-                  </div>
-                </div>
+                <FileUpload
+                  onFileSelect={setSelectedFile}
+                  error={errors.file}
+                  disabled={isFormDisabled}
+                />
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-medium text-gray-900 mb-2">File Format Requirements:</h4>
                   <ul className="text-sm text-gray-700 space-y-1">
@@ -163,9 +269,16 @@ const NewRequest = () => {
                 <Button 
                   className="bg-orange-500 hover:bg-orange-600"
                   onClick={() => handleSubmit('batch-upload')}
-                  disabled={!requestName}
+                  disabled={isFormDisabled || !requestName || !selectedFile}
                 >
-                  Submit Request
+                  {submission.isSubmitting && activeTab === 'batch-upload' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Request'
+                  )}
                 </Button>
               </div>
             </TabsContent>
@@ -186,24 +299,57 @@ const NewRequest = () => {
                     placeholder="SELECT product_name, price, rating, reviews_count FROM 'https://example.com/products' WHERE category = 'electronics' AND price < 500 LIMIT 100"
                     value={sqlQuery}
                     onChange={(e) => setSqlQuery(e.target.value)}
-                    className="mt-1 h-32 font-mono text-sm"
+                    disabled={isFormDisabled}
+                    className={`mt-1 h-32 font-mono text-sm ${errors.sqlQuery ? 'border-red-300' : ''}`}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Write SQL-like queries to specify what data to extract and from which URLs
-                  </p>
+                  {errors.sqlQuery ? (
+                    <p className="text-sm text-red-600 mt-1">{errors.sqlQuery}</p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Write SQL-like queries to specify what data to extract and from which URLs
+                    </p>
+                  )}
                 </div>
                 <Button 
                   className="bg-orange-500 hover:bg-orange-600"
                   onClick={() => handleSubmit('sql-query')}
-                  disabled={!requestName || !sqlQuery}
+                  disabled={isFormDisabled || !requestName || !sqlQuery}
                 >
-                  Submit Request
+                  {submission.isSubmitting && activeTab === 'sql-query' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Request'
+                  )}
                 </Button>
               </div>
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Submission Status */}
+      {submission.error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-800">
+              <strong>Error:</strong> {submission.error}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {submission.success && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <p className="text-green-800">
+              <strong>Success!</strong> Your scraping request has been submitted and will be processed shortly.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Help Section */}
       <Card className="bg-gray-50">
