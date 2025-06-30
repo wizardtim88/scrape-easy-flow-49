@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -192,24 +191,6 @@ const NewRequest = () => {
                   <p className="text-xs text-gray-500 mt-1">
                     Write SQL-like queries to specify what data to extract and from which URLs
                   </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Expected Data Volume</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <Badge variant="outline">Small (1-100 records)</Badge>
-                      <Badge variant="outline">Medium (100-1000 records)</Badge>
-                      <Badge variant="outline">Large (1000+ records)</Badge>
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Priority Level</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <Badge variant="outline">Standard</Badge>
-                      <Badge variant="outline">High</Badge>
-                      <Badge variant="outline">Urgent</Badge>
-                    </div>
-                  </div>
                 </div>
                 <Button 
                   className="bg-orange-500 hover:bg-orange-600"
