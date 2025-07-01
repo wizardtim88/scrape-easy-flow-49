@@ -6,20 +6,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Globe, Database as DatabaseIcon, HelpCircle, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { FileUpload } from '@/components/FileUpload';
+import { DomainLocationSelector } from '@/components/DomainLocationSelector';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { ScrapingRequest, SubmissionState } from '@/types/scraping';
 
 const NewRequest = () => {
   // Form state
   const [requestName, setRequestName] = useState('');
-  const [singleUrl, setSingleUrl] = useState('');
   const [dataPoints, setDataPoints] = useState('');
+  const [singleUrl, setSingleUrl] = useState('');
   const [sqlQuery, setSqlQuery] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedDomain, setSelectedDomain] = useState<string>('');
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [scrapingMethod, setScrapingMethod] = useState<'discovery' | 'standard'>('standard');
   const [activeTab, setActiveTab] = useState('single-url');
   
   // Validation and submission state
@@ -44,9 +49,12 @@ const NewRequest = () => {
       name: requestName.trim(),
       type: type as 'single-url' | 'batch-upload' | 'sql-query',
       url: type === 'single-url' ? singleUrl.trim() : undefined,
-      dataPoints: type === 'single-url' ? dataPoints.trim() : undefined,
+      dataPoints: dataPoints.trim() || undefined,
       sqlQuery: type === 'sql-query' ? sqlQuery.trim() : undefined,
-      file: type === 'batch-upload' ? selectedFile : undefined
+      file: type === 'batch-upload' ? selectedFile : undefined,
+      domain: (type === 'single-url' || type === 'batch-upload') ? selectedDomain : undefined,
+      locations: (type === 'single-url' || type === 'batch-upload') ? selectedLocations : undefined,
+      scrapingMethod: (type === 'single-url' || type === 'batch-upload') ? scrapingMethod : undefined
     };
 
     // Validate form
@@ -104,10 +112,13 @@ const NewRequest = () => {
 
   const resetForm = () => {
     setRequestName('');
-    setSingleUrl('');
     setDataPoints('');
+    setSingleUrl('');
     setSqlQuery('');
     setSelectedFile(null);
+    setSelectedDomain('');
+    setSelectedLocations([]);
+    setScrapingMethod('standard');
     clearErrors();
   };
 
@@ -123,7 +134,7 @@ const NewRequest = () => {
         </p>
       </div>
 
-      {/* Request Name */}
+      {/* Request Name and Data Points */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -133,7 +144,7 @@ const NewRequest = () => {
                 <HelpCircle className="w-4 h-4 text-gray-400" />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Give your request a descriptive name for easy tracking</p>
+                <p>Give your request a descriptive name and specify what data to extract</p>
               </TooltipContent>
             </Tooltip>
           </CardTitle>
@@ -152,6 +163,24 @@ const NewRequest = () => {
             />
             {errors.name && (
               <p className="text-sm text-red-600 mt-1">{errors.name}</p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="data-points">What data do you want to extract?</Label>
+            <Textarea
+              id="data-points"
+              placeholder="e.g., Product names, prices, descriptions, reviews, contact information..."
+              value={dataPoints}
+              onChange={(e) => setDataPoints(e.target.value)}
+              disabled={isFormDisabled}
+              className={`mt-1 h-20 ${errors.dataPoints ? 'border-red-300' : ''}`}
+            />
+            {errors.dataPoints ? (
+              <p className="text-sm text-red-600 mt-1">{errors.dataPoints}</p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">
+                Describe the specific information you need in plain language (optional)
+              </p>
             )}
           </div>
         </CardContent>
@@ -207,24 +236,39 @@ const NewRequest = () => {
                     </p>
                   )}
                 </div>
+
+                <DomainLocationSelector
+                  selectedDomain={selectedDomain}
+                  selectedLocations={selectedLocations}
+                  onDomainChange={setSelectedDomain}
+                  onLocationsChange={setSelectedLocations}
+                  disabled={isFormDisabled}
+                  errors={{ domain: errors.domain, locations: errors.locations }}
+                />
+
                 <div>
-                  <Label htmlFor="data-points">What data do you want to extract?</Label>
-                  <Textarea
-                    id="data-points"
-                    placeholder="e.g., Product names, prices, descriptions, reviews, contact information..."
-                    value={dataPoints}
-                    onChange={(e) => setDataPoints(e.target.value)}
+                  <Label>Scraping Method</Label>
+                  <RadioGroup
+                    value={scrapingMethod}
+                    onValueChange={(value) => setScrapingMethod(value as 'discovery' | 'standard')}
                     disabled={isFormDisabled}
-                    className={`mt-1 h-20 ${errors.dataPoints ? 'border-red-300' : ''}`}
-                  />
-                  {errors.dataPoints ? (
-                    <p className="text-sm text-red-600 mt-1">{errors.dataPoints}</p>
-                  ) : (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Describe the specific information you need in plain language
-                    </p>
-                  )}
+                    className="mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="standard" id="standard" />
+                      <Label htmlFor="standard" className="font-normal cursor-pointer">
+                        Standard Scraping - Extract specific data elements
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="discovery" id="discovery" />
+                      <Label htmlFor="discovery" className="font-normal cursor-pointer">
+                        Discovery Scraping - Explore and identify available data
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
+
                 <Button 
                   className="bg-orange-500 hover:bg-orange-600"
                   onClick={() => handleSubmit('single-url')}
@@ -256,6 +300,39 @@ const NewRequest = () => {
                   error={errors.file}
                   disabled={isFormDisabled}
                 />
+
+                <DomainLocationSelector
+                  selectedDomain={selectedDomain}
+                  selectedLocations={selectedLocations}
+                  onDomainChange={setSelectedDomain}
+                  onLocationsChange={setSelectedLocations}
+                  disabled={isFormDisabled}
+                  errors={{ domain: errors.domain, locations: errors.locations }}
+                />
+
+                <div>
+                  <Label>Scraping Method</Label>
+                  <RadioGroup
+                    value={scrapingMethod}
+                    onValueChange={(value) => setScrapingMethod(value as 'discovery' | 'standard')}
+                    disabled={isFormDisabled}
+                    className="mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="standard" id="standard-batch" />
+                      <Label htmlFor="standard-batch" className="font-normal cursor-pointer">
+                        Standard Scraping - Extract specific data elements
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="discovery" id="discovery-batch" />
+                      <Label htmlFor="discovery-batch" className="font-normal cursor-pointer">
+                        Discovery Scraping - Explore and identify available data
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-medium text-gray-900 mb-2">File Format Requirements:</h4>
                   <ul className="text-sm text-gray-700 space-y-1">

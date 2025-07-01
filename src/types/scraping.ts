@@ -6,6 +6,9 @@ export interface ScrapingRequest {
   dataPoints?: string;
   sqlQuery?: string;
   file?: File;
+  domain?: string;
+  locations?: string[];
+  scrapingMethod?: 'discovery' | 'standard';
 }
 
 export interface ValidationErrors {
@@ -14,6 +17,9 @@ export interface ValidationErrors {
   dataPoints?: string;
   sqlQuery?: string;
   file?: string;
+  domain?: string;
+  locations?: string;
+  scrapingMethod?: string;
 }
 
 export interface SubmissionState {

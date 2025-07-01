@@ -15,6 +15,11 @@ export const useFormValidation = () => {
       newErrors.name = 'Request name must be less than 100 characters';
     }
 
+    // Validate optional data points field
+    if (data.dataPoints && data.dataPoints.length > 500) {
+      newErrors.dataPoints = 'Data points description must be less than 500 characters';
+    }
+
     // Validate based on type
     switch (data.type) {
       case 'single-url':
@@ -22,10 +27,6 @@ export const useFormValidation = () => {
           newErrors.url = 'URL is required';
         } else if (!isValidUrl(data.url)) {
           newErrors.url = 'Please enter a valid HTTP or HTTPS URL';
-        }
-        
-        if (data.dataPoints && data.dataPoints.length > 500) {
-          newErrors.dataPoints = 'Data points description must be less than 500 characters';
         }
         break;
 
