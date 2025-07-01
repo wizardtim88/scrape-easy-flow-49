@@ -27,6 +27,11 @@ export const useFormValidation = () => {
         } else if (!isValidUrl(data.url)) {
           newErrors.url = 'Please enter a valid HTTP or HTTPS URL';
         }
+        
+        // Make domain required for single-url
+        if (!data.domain) {
+          newErrors.domain = 'Retailer domain is required';
+        }
         break;
 
       case 'batch-upload':
@@ -36,6 +41,11 @@ export const useFormValidation = () => {
           newErrors.file = 'Please upload an Excel (.xlsx, .xls) or CSV file';
         } else if (data.file.size > 10 * 1024 * 1024) {
           newErrors.file = 'File size must be less than 10MB';
+        }
+        
+        // Make domain required for batch-upload
+        if (!data.domain) {
+          newErrors.domain = 'Retailer domain is required';
         }
         break;
 

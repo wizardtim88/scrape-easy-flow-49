@@ -143,7 +143,7 @@ export const DomainLocationSelector = ({
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="domain">Retailer Domain</Label>
+        <Label htmlFor="domain">Retailer Domain *</Label>
         <Select value={selectedDomain} onValueChange={onDomainChange} disabled={disabled}>
           <SelectTrigger className={`mt-1 ${errors?.domain ? 'border-red-300' : ''}`}>
             <SelectValue placeholder="Select retailer domain..." />
