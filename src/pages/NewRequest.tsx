@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +23,7 @@ const NewRequest = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDomain, setSelectedDomain] = useState<string>('');
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [scrapingMethod, setScrapingMethod] = useState<'discovery' | 'standard'>('standard');
+  const [scrapingMethod, setScrapingMethod] = useState<'discovery' | 'standard' | 'real-time'>('standard');
   const [activeTab, setActiveTab] = useState('single-url');
   
   // Validation and submission state
@@ -250,20 +249,26 @@ const NewRequest = () => {
                   <Label>Scraping Method</Label>
                   <RadioGroup
                     value={scrapingMethod}
-                    onValueChange={(value) => setScrapingMethod(value as 'discovery' | 'standard')}
+                    onValueChange={(value) => setScrapingMethod(value as 'discovery' | 'standard' | 'real-time')}
                     disabled={isFormDisabled}
                     className="mt-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="standard" id="standard" />
-                      <Label htmlFor="standard" className="font-normal cursor-pointer">
-                        Standard Scraping - Extract specific data elements
+                      <RadioGroupItem value="discovery" id="discovery" />
+                      <Label htmlFor="discovery" className="font-normal cursor-pointer">
+                        Discovery Scraping - For exact and direct match creation
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="discovery" id="discovery" />
-                      <Label htmlFor="discovery" className="font-normal cursor-pointer">
-                        Discovery Scraping - Explore and identify available data
+                      <RadioGroupItem value="standard" id="standard" />
+                      <Label htmlFor="standard" className="font-normal cursor-pointer">
+                        Standard Scraping - For including data in standard business views
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="real-time" id="real-time" />
+                      <Label htmlFor="real-time" className="font-normal cursor-pointer">
+                        Real-Time Scraping - For immediate access in streaming data views
                       </Label>
                     </div>
                   </RadioGroup>
@@ -314,20 +319,26 @@ const NewRequest = () => {
                   <Label>Scraping Method</Label>
                   <RadioGroup
                     value={scrapingMethod}
-                    onValueChange={(value) => setScrapingMethod(value as 'discovery' | 'standard')}
+                    onValueChange={(value) => setScrapingMethod(value as 'discovery' | 'standard' | 'real-time')}
                     disabled={isFormDisabled}
                     className="mt-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="standard" id="standard-batch" />
-                      <Label htmlFor="standard-batch" className="font-normal cursor-pointer">
-                        Standard Scraping - Extract specific data elements
+                      <RadioGroupItem value="discovery" id="discovery-batch" />
+                      <Label htmlFor="discovery-batch" className="font-normal cursor-pointer">
+                        Discovery Scraping - For exact and direct match creation
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="discovery" id="discovery-batch" />
-                      <Label htmlFor="discovery-batch" className="font-normal cursor-pointer">
-                        Discovery Scraping - Explore and identify available data
+                      <RadioGroupItem value="standard" id="standard-batch" />
+                      <Label htmlFor="standard-batch" className="font-normal cursor-pointer">
+                        Standard Scraping - For including data in standard business views
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="real-time" id="real-time-batch" />
+                      <Label htmlFor="real-time-batch" className="font-normal cursor-pointer">
+                        Real-Time Scraping - For immediate access in streaming data views
                       </Label>
                     </div>
                   </RadioGroup>

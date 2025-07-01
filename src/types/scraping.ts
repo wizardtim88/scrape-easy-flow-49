@@ -1,4 +1,3 @@
-
 export interface ScrapingRequest {
   name: string;
   type: 'single-url' | 'batch-upload' | 'sql-query';
@@ -8,7 +7,7 @@ export interface ScrapingRequest {
   file?: File;
   domain?: string;
   locations?: string[];
-  scrapingMethod?: 'discovery' | 'standard';
+  scrapingMethod?: 'discovery' | 'standard' | 'real-time';
 }
 
 export interface ValidationErrors {

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { ScrapingRequest, ValidationErrors } from '@/types/scraping';
 
