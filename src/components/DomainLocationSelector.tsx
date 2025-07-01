@@ -106,6 +106,17 @@ export const DomainLocationSelector = ({
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      onLocationsChange([...availableLocations]);
+    } else {
+      onLocationsChange([]);
+    }
+  };
+
+  const isAllSelected = availableLocations.length > 0 && selectedLocations.length === availableLocations.length;
+  const isPartiallySelected = selectedLocations.length > 0 && selectedLocations.length < availableLocations.length;
+
   return (
     <div className="space-y-4">
       <div>
@@ -132,6 +143,25 @@ export const DomainLocationSelector = ({
           <Label>Store Locations</Label>
           <div className={`mt-1 border rounded-md p-3 max-h-40 overflow-y-auto ${errors?.locations ? 'border-red-300' : 'border-gray-300'}`}>
             <div className="space-y-2">
+              {/* Select All Option */}
+              <div className="flex items-center space-x-2 pb-2 border-b border-gray-200">
+                <Checkbox
+                  id="select-all"
+                  checked={isAllSelected}
+                  ref={(el) => {
+                    if (el) {
+                      el.indeterminate = isPartiallySelected;
+                    }
+                  }}
+                  onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
+                  disabled={disabled}
+                />
+                <Label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                  Select All ({availableLocations.length} locations)
+                </Label>
+              </div>
+              
+              {/* Individual Location Options */}
               {availableLocations.map((location) => (
                 <div key={location} className="flex items-center space-x-2">
                   <Checkbox
