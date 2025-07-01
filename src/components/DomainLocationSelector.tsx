@@ -148,13 +148,9 @@ export const DomainLocationSelector = ({
                 <Checkbox
                   id="select-all"
                   checked={isAllSelected}
-                  ref={(el) => {
-                    if (el) {
-                      el.indeterminate = isPartiallySelected;
-                    }
-                  }}
                   onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
                   disabled={disabled}
+                  className={isPartiallySelected ? 'data-[state=checked]:bg-blue-500' : ''}
                 />
                 <Label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
                   Select All ({availableLocations.length} locations)
